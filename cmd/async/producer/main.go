@@ -35,21 +35,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// check for Prefer: respond-async header
 		var isAsync bool
-		fmt.Println("HOST?")
-		fmt.Println(r.Host)
-		fmt.Println(r.URL)
-		// for passing in myHost
-		// u, err := url.Parse(r.Header.Get("myHost"))
-		// if err != nil {
-		// 	w.WriteHeader(500)
-		// 	fmt.Fprint(w, "Failed to parse URL from myHost Header: ", err)
-		// }
-		// target := &url.URL{
-		// 	Scheme: u.Scheme,
-		// 	Host:   u.Host,
-		// 	Path:   u.Path,
-		// 	RawQuery: u.RawQuery,
-		// }
+
 		target := &url.URL{
 			Scheme: "http",
 			Host: r.Host,
@@ -124,7 +110,6 @@ func main() {
 			}
 
 			// BMV TODO: do we need to close any connections or does writing the header handle this?
-			// h.NextHandler.ServeHTTP(w, r)
 
 		}
 	})
