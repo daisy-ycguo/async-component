@@ -60,9 +60,7 @@ func display(event cloudevents.Event) {
 		fmt.Printf("Got Data Error: %s\n", err.Error())
 	}
 
-	//switch method := data.Method; method {
 	switch data.Method {
-	//case "GET":
 	case http.MethodGet:
 		resp, err := http.Get(data.URL)
 		if err != nil {
@@ -75,7 +73,6 @@ func display(event cloudevents.Event) {
 		}
 		fmt.Println(string(body))
 
-	//case "POST":
 	case http.MethodPost:
 		resp, err := http.Post(data.URL, data.ContentType, strings.NewReader(data.Body))
 		if err != nil {
