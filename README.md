@@ -1,6 +1,8 @@
 # async-component
 Async component for knative services
 
+![diagram](./README-images/diagram.png)
+
 1. Follow instructions for installing Kafka Source, but do not create event display service (https://knative.dev/docs/eventing/samples/kafka/source/)
 
 1. Apply config files:
