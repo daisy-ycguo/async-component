@@ -1,4 +1,4 @@
-module knative.dev/async_component
+module knative.dev/async-component
 
 go 1.14
 
