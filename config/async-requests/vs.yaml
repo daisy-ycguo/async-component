@@ -4,7 +4,7 @@ metadata:
   name: async-vs
 spec:
   hosts:
-  - "perftest.default.52.116.240.92.xip.io"
+  - "write-to-db.default.52.116.240.92.xip.io"
   gateways:
   - knative-serving/cluster-local-gateway
   - knative-serving/knative-ingress-gateway
