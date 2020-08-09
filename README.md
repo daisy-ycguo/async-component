@@ -24,3 +24,6 @@ Async component for knative services
     curl myapp.default.11.112.113.14.xip.io
     curl myapp.default.11.112.113.14.xip.io -H "Prefer: respond-async" -v
     ```
+
+1. Operator found here:
+kubectl create -f https://raw.githubusercontent.com/spotahome/redis-operator/master/example/operator/all-redis-operator-resources.yaml
