@@ -1,0 +1,22 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: write-to-db
+  namespace: default
+spec:
+  template:
+    metadata:
+      name: write-to-db-v1
+    spec:
+      containerConcurrency: 1
+      containers:
+        - image: docker.io/beemarie/write-to-db:latest
+          env:
+            - name: APIKEY
+              value: 'YOUR_API_KEY'
+            - name: ACCOUNT
+              value: 'YOUR_ACCT'
+
+          # env:
+          #   - name: TARGET
+          #     value: "Node.js Sample v1"
