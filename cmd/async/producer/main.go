@@ -9,6 +9,7 @@ import (
 		"encoding/json"
 		"net/http/httputil"
 		"net/url"
+		"strings"
 
 		"github.com/Shopify/sarama"
 		"github.com/kelseyhightower/envconfig"
@@ -16,7 +17,7 @@ import (
 	)
 
 type EnvInfo struct {
-	Topic   string `envconfig:"KAFKA_TOPIC" required:"true"`
+	Topics   string `envconfig:"KAFKA_TOPICS" required:"true"`
 	BootstrapServers []string `envconfig:"KAFKA_BOOTSTRAP_SERVERS" required:"true"`
 	Key     string `envconfig:"KAFKA_KEY" required:"true"`
 	Headers map[string]string `envconfig:"KAFKA_HEADERS" required:"true"`
@@ -94,8 +95,11 @@ func main() {
 				})
 			}
 			partitionnum := rand.Int31n(3)
+			topicNum := rand.Int31n(10)
+			topics := strings.Split(s.Topics, ",")
 			partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
-				Topic:   s.Topic,
+				//Topic:   s.Topic,
+				Topic:     topics[topicNum],
 				// Key:     sarama.StringEncoder(s.Key), //BMV TODO: What does key do?
 				Partition: partitionnum,
 				Value:   sarama.StringEncoder(reqJSON),
