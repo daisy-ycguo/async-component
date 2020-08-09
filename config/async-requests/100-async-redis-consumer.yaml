@@ -1,0 +1,35 @@
+# apiVersion: serving.knative.dev/v1
+# kind: Service
+# metadata:
+#   name: async-redis-consumer
+#   # namespace: default
+# spec:
+#   template:
+#     spec:
+#       containerConcurrency: 1
+#       containers:
+#       - image: ko://knative.dev/async-component/cmd/async/redisConsumer
+# This would be created automatically by the controller
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-consumer
+spec:
+  selector:
+    matchLabels:
+      app: redis-consumer
+  template:
+    metadata:
+      labels:
+        app: redis-consumer
+    spec:
+      containers:
+      - name: queue-worker
+        image: "ko://knative.dev/async-component/cmd/async/redisconsumer"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "50m"
+        env:
+          - name: QUEUE
+            value: "queuename"

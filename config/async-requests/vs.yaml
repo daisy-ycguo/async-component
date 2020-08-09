@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: async-vs
+spec:
+  hosts:
+  - "perftest.default.52.116.240.92.xip.io"
+  gateways:
+  - knative-serving/cluster-local-gateway
+  - knative-serving/knative-ingress-gateway
+  http:
+  - match:
+    - headers:
+        Prefer:
+          exact: respond-async
+      ignoreUriCase: true
+    route:
+    - destination:
+        host: producer-service.default.svc.cluster.local #producer-service #async-producer.default.52.116.240.92.xip.io # Destination service, must match service name
+        port:
+            number: 80 # Post of service, must match service port

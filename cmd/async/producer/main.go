@@ -9,18 +9,26 @@ import (
 		"encoding/json"
 		"net/http/httputil"
 		"net/url"
+		"strings"
+		"time"
+
+		"github.com/bradleypeabody/gouuidv6"
 
 		"github.com/Shopify/sarama"
 		"github.com/kelseyhightower/envconfig"
 		"knative.dev/eventing-contrib/kafka"
+		"github.com/go-redis/redis/v8"
+
 	)
 
 type EnvInfo struct {
-	Topic   string `envconfig:"KAFKA_TOPIC" required:"true"`
+	Topics   string `envconfig:"KAFKA_TOPICS" required:"true"`
 	BootstrapServers []string `envconfig:"KAFKA_BOOTSTRAP_SERVERS" required:"true"`
 	Key     string `envconfig:"KAFKA_KEY" required:"true"`
 	Headers map[string]string `envconfig:"KAFKA_HEADERS" required:"true"`
 	Value   string
+	RedisMaster string `envconfig:"REDIS_MASTER_NAME" required:"true"`
+	Broker string `envconfig:"BROKER" required:"true"`
 }
 
 type RequestData struct {
@@ -28,13 +36,16 @@ type RequestData struct {
 	URL string  //`json:"url"`
 	Body   string //`json:"body"`
 	ContentType string //`json:"content-type"`
+	ID string
 }
 
 func main() {
 	// Start an HTTP Server
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// check for Prefer: respond-async header
+
 		var isAsync bool
+		isKafka := false
 
 		target := &url.URL{
 			Scheme: "http",
@@ -55,10 +66,12 @@ func main() {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(r.Body)
 			bodyStr := buf.String()
+			id := gouuidv6.NewFromTime(time.Now()).String()
 			reqData := RequestData {
 				Method: r.Method,
 				URL: target.String(),
 				Body: bodyStr,
+				ID: id,
 			}
 			reqJSON, err := json.Marshal(reqData)
 			if err != nil {
@@ -73,39 +86,60 @@ func main() {
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-
-			// Create a Kafka client from our Binding.
 			ctx := r.Context()
-			client, err := kafka.NewProducer(ctx)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			producer, err := sarama.NewSyncProducerFromClient(client)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
 
-			// Send the message this Job was created to send.
-			headers := make([]sarama.RecordHeader, 0, len(s.Headers))
-			for k, v := range s.Headers {
-				headers = append(headers, sarama.RecordHeader{
-					Key:   []byte(k),
-					Value: []byte(v),
+			if (isKafka == true) {
+
+				// Create a Kafka client from our Binding.
+				client, err := kafka.NewProducer(ctx)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				producer, err := sarama.NewSyncProducerFromClient(client)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+				// Send the message this Job was created to send.
+				headers := make([]sarama.RecordHeader, 0, len(s.Headers))
+				for k, v := range s.Headers {
+					headers = append(headers, sarama.RecordHeader{
+						Key:   []byte(k),
+						Value: []byte(v),
+					})
+				}
+				partitionnum := rand.Int31n(20) // NOTE: this does not seem to be effecting the actual partition that gets written
+				topicNum := rand.Int31n(10)
+				topics := strings.Split(s.Topics, ",")
+				partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
+					//Topic:   s.Topic,
+					Topic:     topics[topicNum],
+					// Key:     sarama.StringEncoder(s.Key), //BMV TODO: What does key do?
+					Partition: partitionnum,
+					Value:   sarama.StringEncoder(reqJSON),
+					Headers: headers,
 				})
-			}
-			partitionnum := rand.Int31n(3)
-			partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
-				Topic:   s.Topic,
-				// Key:     sarama.StringEncoder(s.Key), //BMV TODO: What does key do?
-				Partition: partitionnum,
-				Value:   sarama.StringEncoder(reqJSON),
-				Headers: headers,
-			})
-			if err != nil {
-				log.Fatal(err.Error())
+				if err != nil {
+					log.Fatal(err.Error())
+				} else {
+					log.Print(partition)
+					log.Print(offset)
+					w.WriteHeader(http.StatusAccepted)
+				}
 			} else {
-				log.Print(partition)
-				log.Print(offset)
+				opts := &redis.UniversalOptions{
+					MasterName: s.RedisMaster,//os.Getenv("REDIS_MASTER_NAME"),
+					Addrs:      []string{s.Broker},//[]string{os.Getenv("BROKER")},
+				}
+				redis := redis.NewUniversalClient(opts)
+				fmt.Println("PUSHING ONTO QUEUE")
+				rpush := redis.RPush(ctx, "queuename", reqJSON)
+				if rpush.Err() != nil  {
+					log.Printf("Failed to publish %q %v", reqData.ID, err)
+					w.WriteHeader(500)
+					fmt.Fprint(w, "Failed to publish task", err)
+					return
+				}
 				w.WriteHeader(http.StatusAccepted)
 			}
 
