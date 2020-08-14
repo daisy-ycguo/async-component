@@ -31,7 +31,7 @@ type Request struct {
 	ContentType string `json:"content-type"`
 }
 
-func display(event cloudevents.Event) {
+func consumeEvent(event cloudevents.Event) {
 	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
 	data := &Request{}
 	if err := event.DataAs(data); err != nil {
@@ -71,5 +71,5 @@ func main() {
 		log.Fatal("Failed to create client, ", err)
 	}
 
-	log.Fatal(c.StartReceiver(context.Background(), display))
+	log.Fatal(c.StartReceiver(context.Background(), consumeEvent))
 }
