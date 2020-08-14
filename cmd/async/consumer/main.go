@@ -20,49 +20,50 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"bufio"
+	"net/url"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
 
 type Request struct {
-	Method      string `json:"method"`
-	URL         string `json:"url"`
-	Body        string `json:"body"`
-	ContentType string `json:"content-type"`
+	ID      string `json:"id"`
+	Req string `json:"request"`
 }
 
 func consumeEvent(event cloudevents.Event) {
 	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
+
 	data := &Request{}
 	if err := event.DataAs(data); err != nil {
 		fmt.Printf("Got Data Error: %s\n", err.Error())
 	}
 
-	switch data.Method {
-	case http.MethodGet:
-		resp, err := http.Get(data.URL)
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(body))
-
-	case http.MethodPost:
-		resp, err := http.Post(data.URL, data.ContentType, strings.NewReader(data.Body))
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(body))
+	r := bufio.NewReader(strings.NewReader(data.Req))
+	var req *http.Request
+	var err error
+	if req, err = http.ReadRequest(r); err != nil { // deserialize request
+		fmt.Println("PROBLEM READING REQUEST")
+			// return err
 	}
+	// client for sending request
+	client := &http.Client{}
+
+	// build new url - writing the request removes the URL and places in URI.
+	u, _ := url.Parse("http://" + req.Host + req.RequestURI)
+	req.RequestURI = ""
+	req.URL = u
+	req.Header.Del("Prefer") // We do not want to make this request as async
+	resp, err := client.Do(req)
+	if err != nil {
+			panic(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(body))
 }
 
 func main() {

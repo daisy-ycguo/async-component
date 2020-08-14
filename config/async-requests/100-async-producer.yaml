@@ -32,11 +32,11 @@ spec:
         image:  ko://knative.dev/async-component/cmd/async/producer
         env:
         - name: SOURCE
-          value: "kafka"
+          value: "redis"
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "my-cluster-kafka-bootstrap.kafka:9092"
         - name: KAFKA_TOPICS
-          value: "knative-demo-topic-1
+          value: "knative-demo-topic-1,knative-demo-topic-2,knative-demo-topic-3,knative-demo-topic-4,knative-demo-topic-5,knative-demo-topic-6,knative-demo-topic-7,knative-demo-topic-8,knative-demo-topic-9,knative-demo-topic-10"
         - name: KAFKA_KEY
           value: "0"
         - name: KAFKA_HEADERS

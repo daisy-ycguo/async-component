@@ -28,17 +28,13 @@ import (
 
 	"github.com/go-redis/redis/v7"
 
-	// duckv1 "knative.dev/pkg/apis/duck/v1"
-
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/kelseyhightower/envconfig"
 )
 
 type Request struct {
-	Method      string `json:"method"`
-	URL         string `json:"url"`
-	Body        string `json:"body"`
-	ContentType string `json:"content-type"`
+	ID          string //`json:"id"`
+	Request     string //`json:"request"`
 }
 
 var (
@@ -109,13 +105,6 @@ func main() {
 		log.Fatalf("failed to create client: %s", err.Error())
 	}
 
-	// var period time.Duration
-	// if p, err := strconv.Atoi(periodStr); err != nil {
-	// 	period = time.Duration(5) * time.Second
-	// } else {
-	// 	period = time.Duration(p) * time.Second
-	// }
-
 	if eventSource == "" {
 		eventSource = fmt.Sprintf("https://knative.dev/eventing-contrib/cmd/heartbeats/#%s/%s", env.Namespace, env.Name)
 		log.Printf("Heartbeats Source: %s", eventSource)
@@ -155,8 +144,6 @@ func main() {
 			if env.OneShot {
 				return
 			}
-			fmt.Println("END FUNC")
 		}()
-		fmt.Println("END FOR")
 	}
 }

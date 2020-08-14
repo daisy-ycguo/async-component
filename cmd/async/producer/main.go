@@ -32,11 +32,8 @@ type EnvInfo struct {
 }
 
 type RequestData struct {
-	Method      string //`json:"method"`
-	URL         string //`json:"url"`
-	Body        string //`json:"body"`
-	ContentType string //`json:"content-type"`
-	ID          string
+	ID          string //`json:"id"`
+	Request     string //`json:"request"`
 }
 
 func main() {
@@ -60,21 +57,24 @@ func main() {
 			r.Host = target.Host
 			proxy.ServeHTTP(w, r)
 		} else {
-			// myhost is the url of the app we ultimately want to access
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(r.Body)
-			bodyStr := buf.String()
+
+			// write the request into b
+			var b = &bytes.Buffer{}
+			if err := r.Write(b); err !=nil {
+				fmt.Println("ERROR WRITING REQUEST")
+				// return err
+			}
+			// translate to string then json with id.
+			reqString := b.String() 
 			id := gouuidv6.NewFromTime(time.Now()).String()
 			reqData := RequestData{
-				Method: r.Method,
-				URL:    target.String(),
-				Body:   bodyStr,
-				ID:     id,
+				ID: id,
+				Request:    reqString,
 			}
 			reqJSON, err := json.Marshal(reqData)
 			if err != nil {
 				w.WriteHeader(500)
-				fmt.Fprint(w, "Failed to marshal response: ", err)
+				fmt.Fprint(w, "Failed to marshal request: ", err)
 				return
 			}
 
@@ -84,7 +84,6 @@ func main() {
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-
 			ctx := r.Context()
 
 			if s.Source == "kafka" {
