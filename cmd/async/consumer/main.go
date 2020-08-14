@@ -16,18 +16,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
 	"strings"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
 
 type Request struct {
-	Method     string  `json:"method"`
-	URL string  `json:"url"`
-	Body   string `json:"body"`
+	Method      string `json:"method"`
+	URL         string `json:"url"`
+	Body        string `json:"body"`
 	ContentType string `json:"content-type"`
 }
 

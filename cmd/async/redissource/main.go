@@ -25,6 +25,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+
 	"github.com/go-redis/redis/v7"
 
 	// duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -34,11 +35,12 @@ import (
 )
 
 type Request struct {
-	Method     string  `json:"method"`
-	URL string  `json:"url"`
-	Body   string `json:"body"`
+	Method      string `json:"method"`
+	URL         string `json:"url"`
+	Body        string `json:"body"`
 	ContentType string `json:"content-type"`
 }
+
 var (
 	eventSource string
 	eventType   string
@@ -83,8 +85,7 @@ func main() {
 	}
 	rclient := redis.NewUniversalClient(opts)
 
-
-   fmt.Println("Waiting for jobs on jobQueue: ", key)
+	fmt.Println("Waiting for jobs on jobQueue: ", key)
 	flag.Parse()
 
 	var env envConfig
@@ -140,17 +141,17 @@ func main() {
 		event.SetType(eventType)
 		event.SetSource(eventSource)
 
-    go func() {
+		go func() {
 			if err := event.SetData(cloudevents.ApplicationJSON, data); err != nil {
 				log.Printf("failed to set cloudevents data: %s", err.Error())
 			}
-	
+
 			log.Printf("sending cloudevent to %s", sink)
 			if res := c.Send(context.Background(), event); !cloudevents.IsACK(res) {
 				log.Printf("failed to send cloudevent: %v", res)
 				fmt.Println("RES", res)
 			}
-	
+
 			if env.OneShot {
 				return
 			}

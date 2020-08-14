@@ -1,43 +1,42 @@
 package main
 
 import (
-    "fmt"
-		"net/http"
-		"log"
-		"bytes"
-		"math/rand"
-		"encoding/json"
-		"net/http/httputil"
-		"net/url"
-		"time"
-		"strings"
-		"github.com/bradleypeabody/gouuidv6"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"math/rand"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strings"
+	"time"
 
+	"github.com/bradleypeabody/gouuidv6"
 
-		"github.com/Shopify/sarama"
-		"github.com/kelseyhightower/envconfig"
-		"knative.dev/eventing-contrib/kafka"
-		"github.com/go-redis/redis/v8"
-
-	)
+	"github.com/Shopify/sarama"
+	"github.com/go-redis/redis/v8"
+	"github.com/kelseyhightower/envconfig"
+	"knative.dev/eventing-contrib/kafka"
+)
 
 type EnvInfo struct {
-	Topics   string `envconfig:"KAFKA_TOPICS" required:"true"`
-	BootstrapServers []string `envconfig:"KAFKA_BOOTSTRAP_SERVERS"`
-	Key     string `envconfig:"KAFKA_KEY"`
-	Headers map[string]string `envconfig:"KAFKA_HEADERS"`
-	Source  string `envconfig:"SOURCE" required:"true"`
-	RedisMaster string `envconfig:"REDIS_MASTER_NAME"`
-	Broker  string `envconfig:"BROKER"`
-	Value   string
+	Topics           string            `envconfig:"KAFKA_TOPICS" required:"true"`
+	BootstrapServers []string          `envconfig:"KAFKA_BOOTSTRAP_SERVERS"`
+	Key              string            `envconfig:"KAFKA_KEY"`
+	Headers          map[string]string `envconfig:"KAFKA_HEADERS"`
+	Source           string            `envconfig:"SOURCE" required:"true"`
+	RedisMaster      string            `envconfig:"REDIS_MASTER_NAME"`
+	Broker           string            `envconfig:"BROKER"`
+	Value            string
 }
 
 type RequestData struct {
-	Method     string  //`json:"method"`
-	URL string  //`json:"url"`
-	Body   string //`json:"body"`
+	Method      string //`json:"method"`
+	URL         string //`json:"url"`
+	Body        string //`json:"body"`
 	ContentType string //`json:"content-type"`
-	ID  string
+	ID          string
 }
 
 func main() {
@@ -47,9 +46,9 @@ func main() {
 		var isAsync bool
 
 		target := &url.URL{
-			Scheme: "http",
-			Host: r.Host,
-			Path: r.URL.Path,
+			Scheme:   "http",
+			Host:     r.Host,
+			Path:     r.URL.Path,
 			RawQuery: r.URL.RawQuery,
 		}
 		asyncHeader := r.Header.Get("Prefer")
@@ -66,11 +65,11 @@ func main() {
 			buf.ReadFrom(r.Body)
 			bodyStr := buf.String()
 			id := gouuidv6.NewFromTime(time.Now()).String()
-			reqData := RequestData {
+			reqData := RequestData{
 				Method: r.Method,
-				URL: target.String(),
-				Body: bodyStr,
-				ID: id,
+				URL:    target.String(),
+				Body:   bodyStr,
+				ID:     id,
 			}
 			reqJSON, err := json.Marshal(reqData)
 			if err != nil {
@@ -87,8 +86,8 @@ func main() {
 			}
 
 			ctx := r.Context()
-			
-			if (s.Source == "kafka") {
+
+			if s.Source == "kafka" {
 				fmt.Println("USING KAFKA")
 				// Create a Kafka client from our Binding.
 				client, err := kafka.NewProducer(ctx)
@@ -113,11 +112,11 @@ func main() {
 				topics := strings.Split(s.Topics, ",")
 				partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
 					//Topic:   s.Topic,
-					Topic:     topics[topicNum],
+					Topic: topics[topicNum],
 					// Key:     sarama.StringEncoder(s.Key), //BMV TODO: What does key do?
 					Partition: partitionnum,
-					Value:   sarama.StringEncoder(reqJSON),
-					Headers: headers,
+					Value:     sarama.StringEncoder(reqJSON),
+					Headers:   headers,
 				})
 				if err != nil {
 					log.Fatal(err.Error())
@@ -126,16 +125,16 @@ func main() {
 					log.Print(offset)
 					w.WriteHeader(http.StatusAccepted)
 				}
-			} else if (s.Source == "redis") {
+			} else if s.Source == "redis" {
 				fmt.Println("USING REDIS")
 				opts := &redis.UniversalOptions{
-					MasterName: s.RedisMaster,//os.Getenv("REDIS_MASTER_NAME"),
-					Addrs:      []string{s.Broker},//[]string{os.Getenv("BROKER")},
+					MasterName: s.RedisMaster,      //os.Getenv("REDIS_MASTER_NAME"),
+					Addrs:      []string{s.Broker}, //[]string{os.Getenv("BROKER")},
 				}
 				redis := redis.NewUniversalClient(opts)
 				fmt.Println("PUSHING ONTO QUEUE", reqJSON)
 				rpush := redis.RPush(ctx, "queuename", reqJSON)
-				if rpush.Err() != nil  {
+				if rpush.Err() != nil {
 					log.Printf("Failed to publish %q %v", reqData.ID, err)
 					w.WriteHeader(500)
 					fmt.Fprint(w, "Failed to publish task", err)
