@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 )
 
-func TestGetRequest(t *testing.T) {
+func TestAsyncRequestHeader(t *testing.T) {
 	t.Run("make async request", func(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, "/", nil)
 			request.Header.Set("Prefer", "respond-async")
