@@ -16,7 +16,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -31,7 +30,7 @@ type Request struct {
 	Req string `json:"request"`
 }
 
-func consumeEvent(event cloudevents.Event) {
+func consumeEvent(event cloudevents.Event) http.Response {
 	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
 
 	data := &Request{}
@@ -39,11 +38,12 @@ func consumeEvent(event cloudevents.Event) {
 		fmt.Printf("Got Data Error: %s\n", err.Error())
 	}
 
+	fmt.Println("REQUEST DATA", data.Req)
 	r := bufio.NewReader(strings.NewReader(data.Req))
 	var req *http.Request
 	var err error
 	if req, err = http.ReadRequest(r); err != nil { // deserialize request
-		fmt.Println("PROBLEM READING REQUEST")
+		fmt.Println("PROBLEM READING REQUEST", err)
 			// return err
 	}
 	// client for sending request
@@ -59,11 +59,13 @@ func consumeEvent(event cloudevents.Event) {
 			panic(err)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(body))
+	// read body from response
+	// body, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(body)
+	return *resp
 }
 
 func main() {

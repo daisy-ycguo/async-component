@@ -49,8 +49,9 @@ const key = "queuename"
 
 func init() {
 	//TODO: update & remove these stringvar?
+	// set event source not as heartbeat
 	flag.StringVar(&eventSource, "eventSource", "", "the event-source (CloudEvents)")
-	flag.StringVar(&eventType, "eventType", "dev.knative.eventing.samples.request", "the event-type (CloudEvents)")
+	flag.StringVar(&eventType, "eventType", "dev.knative.async.request", "the event-type (CloudEvents)")
 	flag.StringVar(&sink, "sink", "", "the host url to write to")
 	flag.StringVar(&label, "label", "", "a special label")
 	flag.StringVar(&periodStr, "period", "5", "the number of seconds between heartbeats")

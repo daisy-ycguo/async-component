@@ -145,8 +145,8 @@ func writeToKafka(ctx context.Context, s EnvInfo, reqJSON []byte, w http.Respons
 func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, w http.ResponseWriter, id string) {
 	fmt.Println("USING REDIS")
 	opts := &redis.UniversalOptions{
-		MasterName: s.RedisMaster,      //os.Getenv("REDIS_MASTER_NAME"),
-		Addrs:      []string{s.Broker}, //[]string{os.Getenv("BROKER")},
+		MasterName: s.RedisMaster,
+		Addrs:      []string{s.Broker},
 	}
 	redis := redis.NewUniversalClient(opts)
 	fmt.Println("PUSHING ONTO QUEUE", reqJSON)
