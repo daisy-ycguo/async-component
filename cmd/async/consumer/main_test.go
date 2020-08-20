@@ -33,8 +33,8 @@ func TestConsumeEvent(t *testing.T) {
 		}
 	}))
 
-	getreq, _ := http.NewRequest("GET", testserver.URL, nil)
-	badreq, _ := http.NewRequest("GET", "http://badurl", nil)
+	getreq, _ := http.NewRequest(http.MethodGet, testserver.URL, nil)
+	badreq, _ := http.NewRequest(http.MethodGet, "http://badurl", nil)
 
 	tests := []struct {
 		name        string
