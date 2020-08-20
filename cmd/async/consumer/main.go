@@ -44,7 +44,7 @@ func consumeEvent(event cloudevents.Event) error {
 	var req *http.Request
 	var err error
 	if req, err = http.ReadRequest(r); err != nil { // deserialize request
-		fmt.Println("Problem reading request: T", err)
+		fmt.Println("Problem reading request: ", err)
 		return err
 	}
 	// client for sending request

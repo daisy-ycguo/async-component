@@ -34,6 +34,7 @@ func TestConsumeEvent(t *testing.T) {
 	}))
 
 	getreq, _ := http.NewRequest(http.MethodGet, testserver.URL, nil)
+	postreq, _ := http.NewRequest(http.MethodPost, testserver.URL, nil)
 	badreq, _ := http.NewRequest(http.MethodGet, "http://badurl", nil)
 
 	tests := []struct {
@@ -47,6 +48,10 @@ func TestConsumeEvent(t *testing.T) {
 	}, {
 		name:        "proper request data, get request",
 		reqString:   getRequestString(getreq),
+		expectedErr: "",
+	}, {
+		name:        "proper request data, post request",
+		reqString:   getRequestString(postreq),
 		expectedErr: "",
 	}, {
 		name:        "bad url format",
