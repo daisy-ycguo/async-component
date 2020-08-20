@@ -14,19 +14,19 @@ limitations under the License.
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
-	"bufio"
 	"net/url"
+	"strings"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
 
 type Request struct {
-	ID      string `json:"id"`
+	ID  string `json:"id"`
 	Req string `json:"request"`
 }
 
@@ -53,7 +53,7 @@ func consumeEvent(event cloudevents.Event) error {
 	// build new url - writing the request removes the URL and places in URI.
 	req.RequestURI = ""
 	req.URL, _ = url.Parse("http://" + req.Host + req.RequestURI) //TODO: catch this error later
-	req.Header.Del("Prefer") // We do not want to make this request as async
+	req.Header.Del("Prefer")                                      // We do not want to make this request as async
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Problem calling url: ", err)
