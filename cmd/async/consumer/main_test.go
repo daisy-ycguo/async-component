@@ -5,8 +5,10 @@ import (
 	"flag"
 	"bytes"
 	"net/http"
+	"net/http/httptest"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -16,7 +18,7 @@ var (
 )
 
 func TestConsumeEvent(t *testing.T) {
-	t.Run("consume cloud event", func(t *testing.T) {
+	// t.Run("consume cloud event", func(t *testing.T) {
 		myEvent := cloudevents.NewEvent("1.0")
 		flag.StringVar(&eventSource, "eventSource", "redis-source", "the event-source (CloudEvents)")
 		flag.StringVar(&eventType, "eventType", "dev.knative.async.request", "the event-type (CloudEvents)")
@@ -24,28 +26,62 @@ func TestConsumeEvent(t *testing.T) {
 		myEvent.SetSource(eventSource)
 		myEvent.SetID("123")
 
-		// BMV TODO: how can we test without using a real URL here?
-		req, _ := http.NewRequest("GET", "https://www.google.com/", nil)
-		// write the request into b
-		var b = &bytes.Buffer{}
-		if err := req.Write(b); err !=nil {
-			fmt.Println("ERROR WRITING REQUEST")
-			// return err
+		testserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if (r.Method != "GET" && r.Method != "POST") {
+				t.Errorf("Expected 'POST' OR 'GET' request, got '%s'", r.Method)
+			}
+		}))
+
+		getreq, _ := http.NewRequest("GET", testserver.URL, nil)
+		badreq, _ := http.NewRequest("GET", "http://badurl", nil)
+
+		tests := []struct {
+			name   string
+			reqString    string
+			expectedErr     string
+		}{{
+			name:   "no request data, get request",
+			reqString: "",
+			expectedErr: "EOF",
+		}, {
+			name:   "proper request data, get request",
+			reqString: getRequestString(getreq),
+			expectedErr: "",
+		}, {
+			name: "bad url format",
+			reqString: getRequestString(badreq),
+			expectedErr: "dial tcp: lookup badurl: no such host",
+		}}
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				// create data for Request
+				data.ID = ""
+				data.Req = test.reqString
+		
+				myEvent.SetData(cloudevents.ApplicationJSON, data)
+		
+				theResponse := consumeEvent(myEvent)
+				got :=  theResponse
+				if (test.expectedErr != "") {
+					msg := got.Error()
+					if (!strings.Contains(msg, test.expectedErr)) {
+						t.Errorf("got %s, want %s", msg, test.expectedErr)
+					}
+				} else if (got != nil) {
+					t.Errorf("got error when one was unexpected")
+				}
+			})
 		}
-		// translate to string then json with id.
-		reqString := b.String() 
+}
 
-		// create data for Request
-		data.ID = "123"
-		data.Req = reqString
-		myEvent.SetData(cloudevents.ApplicationJSON, data)
+func getRequestString(theReq *http.Request) string {
 
-		theResponse := consumeEvent(myEvent)
-		got := theResponse.StatusCode
-		want := 200
-
-		if got != want {
-				t.Errorf("got %d, want %d", got, want)
-		}
-})
+	// write the request into b
+	var b = &bytes.Buffer{}
+	if err := theReq.Write(b); err !=nil {
+		fmt.Println("ERROR WRITING REQUEST")
+		// return err
+	}
+	// translate to string then json with id.
+	return b.String() 
 }
