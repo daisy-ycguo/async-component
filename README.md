@@ -29,7 +29,7 @@ Async component for knative services
 
       ```
       ko apply -f config/async-requests/100-async-consumer.yaml
-      ko apply -f cnofig/async-requests/100-async-producer.yaml
+      ko apply -f config/async-requests/100-async-producer.yaml
       ko apply vs.yaml
       ```
 
