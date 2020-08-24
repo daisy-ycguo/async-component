@@ -19,7 +19,6 @@ Async component for knative services
     ```
 
   1. Create the Redis Source. This is a placeholder source until one is availble from knative/eventing:
-
     ```
     ko apply -f config/async-requests/100-async-redis-source.yaml
     ```
