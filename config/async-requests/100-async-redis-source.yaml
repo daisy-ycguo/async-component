@@ -16,7 +16,7 @@ spec:
             - name: POD_NAMESPACE
               value: "event-test"
             - name: K_SINK
-              value: "http://event-display.default.52.116.240.92.xip.io" 
+              value: "http://async-consumer.default.52.116.240.92.xip.io"  #UPDATE WITH YOUR OWN CONSUMER ADDRESS
             - name: BROKER
               value: rfs-queue-store:26379
             - name: REDIS_MASTER_NAME
