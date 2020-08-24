@@ -9,19 +9,21 @@ Async component for knative services
 
   ### Redis
   1. Create Redis Operator:
-    ```
-    kubectl create -f https://raw.githubusercontent.com/spotahome/redis-operator/master/example/operator/all-redis-operator-resources.yaml
-    ```
+
+      ```
+      kubectl create -f https://raw.githubusercontent.com/spotahome/redis-operator/master/example/operator/all-redis-operator-resources.yaml
+      ```
 
   1. Create Redis Failover:
-    ```
-    kubectl create -f config/async-requests/redis-failover.yaml
-    ```
+    
+      ```
+      kubectl create -f config/async-requests/redis-failover.yaml
+      ```
 
   1. Create the Redis Source. This is a placeholder source until one is availble from knative/eventing:
-    ```
-    ko apply -f config/async-requests/100-async-redis-source.yaml
-    ```
+      ```
+      ko apply -f config/async-requests/100-async-redis-source.yaml
+      ```
 
 ## Install the Consumer and Producer
   1. Apply the following config files:
