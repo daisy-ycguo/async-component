@@ -160,12 +160,7 @@ func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, id string) (er
 	// rpush := client.RPush(ctx, "queuename", reqJSON)
 	if strCMD.Err() != nil {
 		log.Printf("Failed to publish %q %v", id, strCMD.Err())
-		//w.WriteHeader(500)
-		//fmt.Fprint(w, "Failed to publish task", strCMD.Err())
 		return strCMD.Err()
 	}
 	return
-	// else {
-	// 	w.WriteHeader(http.StatusAccepted)
-	// }
 }
