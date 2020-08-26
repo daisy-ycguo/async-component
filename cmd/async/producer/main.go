@@ -88,19 +88,23 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		ctx := r.Context()
+		var sourceErr error
 		if s.Source == "kafka" {
-			writeToKafka(ctx, s, reqJSON, w)
+			sourceErr = writeToKafka(r.Context(), s, reqJSON)
 		} else if s.Source == "redis" {
-			writeToRedis(ctx, s, reqJSON, w, reqData.ID)
+			sourceErr = writeToRedis(r.Context(), s, reqJSON, reqData.ID)
 		}
-
+		if sourceErr != nil {
+			w.WriteHeader(500)
+		} else {
+			w.WriteHeader(http.StatusAccepted)
+		}
 		// BMV TODO: do we need to close any connections or does writing the header handle this?
 
 	}
 }
 
-func writeToKafka(ctx context.Context, s EnvInfo, reqJSON []byte, w http.ResponseWriter) {
+func writeToKafka(ctx context.Context, s EnvInfo, reqJSON []byte) (err error) {
 	fmt.Println("USING KAFKA")
 	// Create a Kafka client from our Binding.
 	client, err := kafka.NewProducer(ctx)
@@ -132,15 +136,14 @@ func writeToKafka(ctx context.Context, s EnvInfo, reqJSON []byte, w http.Respons
 		Headers:   headers,
 	})
 	if err != nil {
-		log.Fatal(err.Error())
-	} else {
-		log.Print(partition)
-		log.Print(offset)
-		w.WriteHeader(http.StatusAccepted)
+		return err
 	}
+	log.Print(partition)
+	log.Print(offset)
+	return
 }
 
-func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, w http.ResponseWriter, id string) {
+func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, id string) (err error) {
 	fmt.Println("USING REDIS")
 	opts := &redis.UniversalOptions{
 		Addrs: []string{"redis.redis.svc.cluster.local:6379"},
@@ -157,10 +160,12 @@ func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, w http.Respons
 	// rpush := client.RPush(ctx, "queuename", reqJSON)
 	if strCMD.Err() != nil {
 		log.Printf("Failed to publish %q %v", id, strCMD.Err())
-		w.WriteHeader(500)
-		fmt.Fprint(w, "Failed to publish task", strCMD.Err())
-		return
-	} else {
-		w.WriteHeader(http.StatusAccepted)
+		//w.WriteHeader(500)
+		//fmt.Fprint(w, "Failed to publish task", strCMD.Err())
+		return strCMD.Err()
 	}
+	return
+	// else {
+	// 	w.WriteHeader(http.StatusAccepted)
+	// }
 }
