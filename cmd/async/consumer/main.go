@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"encoding/base64"
+	"encoding/json"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
@@ -33,13 +35,18 @@ type Request struct {
 func consumeEvent(event cloudevents.Event) error {
 	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
 
-	data := &Request{}
-	if err := event.DataAs(data); err != nil {
-		fmt.Printf("Got Data Error: %s\n", err.Error())
-		return err
-	}
 
-	fmt.Println("REQUEST DATA", data.Req)
+	data := &Request{}
+	// TODO: how can we get the actual data we need without manually accessing?
+	// data is in format "["data":"therequestdata"]", unable to unmarshal top level array
+	reqData := string(event.Data()[13:len(event.Data())-2])
+	decodedByteArr, decodeErr := base64.StdEncoding.DecodeString(reqData)
+	if decodeErr != nil {
+					log.Fatal("error:", decodeErr)
+	}
+	// TODO: check for errors here
+	_ = json.Unmarshal(decodedByteArr, data)
+
 	r := bufio.NewReader(strings.NewReader(data.Req))
 	var req *http.Request
 	var err error
@@ -51,8 +58,9 @@ func consumeEvent(event cloudevents.Event) error {
 	client := &http.Client{}
 
 	// build new url - writing the request removes the URL and places in URI.
-	req.RequestURI = ""
+	fmt.Println("REQ URI", req.RequestURI)
 	req.URL, _ = url.Parse("http://" + req.Host + req.RequestURI) //TODO: catch this error later
+	req.RequestURI = ""
 	req.Header.Del("Prefer")                                      // We do not want to make this request as async
 	resp, err := client.Do(req)
 	if err != nil {

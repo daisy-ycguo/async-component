@@ -62,7 +62,6 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		r.Host = target.Host
 		proxy.ServeHTTP(w, r)
 	} else {
-
 		// write the request into b
 		var b = &bytes.Buffer{}
 		if err := r.Write(b); err !=nil {
@@ -90,7 +89,6 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err.Error())
 		}
 		ctx := r.Context()
-
 		if s.Source == "kafka" {
 			writeToKafka(ctx, s, reqJSON, w)
 		} else if s.Source == "redis" {
@@ -145,16 +143,22 @@ func writeToKafka(ctx context.Context, s EnvInfo, reqJSON []byte, w http.Respons
 func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, w http.ResponseWriter, id string) {
 	fmt.Println("USING REDIS")
 	opts := &redis.UniversalOptions{
-		MasterName: s.RedisMaster,
-		Addrs:      []string{s.Broker},
+		Addrs: []string{"redis.redis.svc.cluster.local:6379"},
 	}
-	redis := redis.NewUniversalClient(opts)
+	client := redis.NewUniversalClient(opts)
 	fmt.Println("PUSHING ONTO QUEUE", reqJSON)
-	rpush := redis.RPush(ctx, "queuename", reqJSON)
-	if rpush.Err() != nil {
-		log.Printf("Failed to publish %q %v", id, rpush.Err())
+	// TODO: maybe there's a different way to add this to stream?
+	strCMD := client.XAdd(ctx, &redis.XAddArgs{
+		Stream: "mystream",
+		Values: map[string]interface{}{
+				"data": reqJSON,
+		},
+	})
+	// rpush := client.RPush(ctx, "queuename", reqJSON)
+	if strCMD.Err() != nil {
+		log.Printf("Failed to publish %q %v", id, strCMD.Err())
 		w.WriteHeader(500)
-		fmt.Fprint(w, "Failed to publish task", rpush.Err())
+		fmt.Fprint(w, "Failed to publish task", strCMD.Err())
 		return
 	} else {
 		w.WriteHeader(http.StatusAccepted)
