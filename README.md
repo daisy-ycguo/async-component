@@ -48,7 +48,6 @@ Async component for knative services
   1. Follow the `Getting Started` Instructions for the [Redis Source](https://github.com/lionelvillard/eventing-redis)
 
   1. For the `Example` section, do not install the entire `samples` folder, as you don't need the event-display sink. Additionally, edit the `redisstream.yaml` file to point to your consumer as the sink. The change should look something like this:
-     
       ```
       apiVersion: sources.knative.dev/v1alpha1
       kind: RedisStreamSource
@@ -62,7 +61,7 @@ Async component for knative services
             apiVersion: v1
             kind: Service
             name: async-consumer
-    ```
+      ```
 
   1. Apply the changed file to your cluster:
     ```
