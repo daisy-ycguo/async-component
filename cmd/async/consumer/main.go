@@ -16,13 +16,13 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"encoding/base64"
-	"encoding/json"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
@@ -35,14 +35,13 @@ type Request struct {
 func consumeEvent(event cloudevents.Event) error {
 	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
 
-
 	data := &Request{}
 	// TODO: how can we get the actual data we need without manually accessing?
 	// data is in format "["data":"therequestdata"]", unable to unmarshal top level array
-	reqData := string(event.Data()[13:len(event.Data())-2])
+	reqData := string(event.Data()[13 : len(event.Data())-2])
 	decodedByteArr, decodeErr := base64.StdEncoding.DecodeString(reqData)
 	if decodeErr != nil {
-					log.Fatal("error:", decodeErr)
+		log.Fatal("error:", decodeErr)
 	}
 	// TODO: check for errors here
 	_ = json.Unmarshal(decodedByteArr, data)
@@ -61,7 +60,7 @@ func consumeEvent(event cloudevents.Event) error {
 	fmt.Println("REQ URI", req.RequestURI)
 	req.URL, _ = url.Parse("http://" + req.Host + req.RequestURI) //TODO: catch this error later
 	req.RequestURI = ""
-	req.Header.Del("Prefer")                                      // We do not want to make this request as async
+	req.Header.Del("Prefer") // We do not want to make this request as async
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Problem calling url: ", err)

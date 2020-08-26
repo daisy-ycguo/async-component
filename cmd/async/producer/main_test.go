@@ -1,9 +1,9 @@
 package main
 
 import (
-	"testing"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 )
 
 func TestAsyncRequestHeader(t *testing.T) {
@@ -14,23 +14,23 @@ func TestAsyncRequestHeader(t *testing.T) {
 	}))
 
 	tests := []struct {
-		name        string
-		async   bool
-		returncode  int
+		name       string
+		async      bool
+		returncode int
 	}{{
-		name:        "make async request",
-		async:        true,
-		returncode:   200,
+		name:       "make async request",
+		async:      true,
+		returncode: 200,
 	}, {
-		name:        "non async request",
-		async:       false,
-		returncode:  200,
+		name:       "non async request",
+		async:      false,
+		returncode: 200,
 	}}
 	// os.Setenv("SOURCE", "redis") //TODO: how to test redis source
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, testserver.URL, nil)
-			if (test.async) {
+			if test.async {
 				request.Header.Set("Prefer", "respond-async")
 			}
 			rr := httptest.NewRecorder()
@@ -41,7 +41,7 @@ func TestAsyncRequestHeader(t *testing.T) {
 			want := test.returncode
 
 			if got != want {
-					t.Errorf("got %d, want %d", got, want)
+				t.Errorf("got %d, want %d", got, want)
 			}
 		})
 	}

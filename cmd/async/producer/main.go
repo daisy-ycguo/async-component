@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,7 +11,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
-	"context"
 	"time"
 
 	"github.com/bradleypeabody/gouuidv6"
@@ -33,8 +33,8 @@ type EnvInfo struct {
 }
 
 type RequestData struct {
-	ID          string //`json:"id"`
-	Request     string //`json:"request"`
+	ID      string //`json:"id"`
+	Request string //`json:"request"`
 }
 
 func main() {
@@ -64,16 +64,16 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// write the request into b
 		var b = &bytes.Buffer{}
-		if err := r.Write(b); err !=nil {
+		if err := r.Write(b); err != nil {
 			fmt.Println("ERROR WRITING REQUEST")
 			// return err
 		}
 		// translate to string then json with id.
-		reqString := b.String() 
+		reqString := b.String()
 		id := gouuidv6.NewFromTime(time.Now()).String()
 		reqData := RequestData{
-			ID: id,
-			Request:    reqString,
+			ID:      id,
+			Request: reqString,
 		}
 		reqJSON, err := json.Marshal(reqData)
 		if err != nil {
@@ -151,7 +151,7 @@ func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, w http.Respons
 	strCMD := client.XAdd(ctx, &redis.XAddArgs{
 		Stream: "mystream",
 		Values: map[string]interface{}{
-				"data": reqJSON,
+			"data": reqJSON,
 		},
 	})
 	// rpush := client.RPush(ctx, "queuename", reqJSON)
