@@ -1,28 +1,12 @@
-apiVersion: sources.knative.dev/v1alpha2
-kind: ContainerSource
+apiVersion: sources.knative.dev/v1alpha1
+kind: RedisStreamSource
 metadata:
-  name: redis-source
+  name: mystream
 spec:
-  template:
-    spec:
-      containers:
-        - image: ko://knative.dev/async-component/cmd/async/redissource
-          name: redis-source
-          args:
-            - --period=1
-          env:
-            - name: POD_NAME
-              value: "mypod"
-            - name: POD_NAMESPACE
-              value: "event-test"
-            - name: K_SINK
-              value: "http://async-consumer.default.52.116.240.92.xip.io"  #UPDATE WITH YOUR OWN CONSUMER ADDRESS
-            - name: BROKER
-              value: rfs-queue-store:26379
-            - name: REDIS_MASTER_NAME
-              value: mymaster
+  address: "redis.redis.svc.cluster.local:6379"
+  stream: mystream
   sink:
     ref:
-      apiVersion: serving.knative.dev/v1
+      apiVersion: v1
       kind: Service
       name: async-consumer
