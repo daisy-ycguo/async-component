@@ -33,10 +33,9 @@ type Request struct {
 }
 
 func consumeEvent(event cloudevents.Event) error {
-	fmt.Printf("☁️  cloudevents.Event\n%s", event.String())
 
 	data := &Request{}
-	// TODO: how can we get the actual data we need without manually accessing?
+	// TODO: how can we get the actual data we need without manually accessing this string?
 	// data is in format "["data":"therequestdata"]", unable to unmarshal top level array
 	reqData := string(event.Data()[13 : len(event.Data())-2])
 	decodedByteArr, decodeErr := base64.StdEncoding.DecodeString(reqData)
@@ -44,12 +43,15 @@ func consumeEvent(event cloudevents.Event) error {
 		log.Fatal("error:", decodeErr)
 	}
 	// TODO: check for errors here
-	_ = json.Unmarshal(decodedByteArr, data)
+	err := json.Unmarshal(decodedByteArr, data)
+	if err != nil {
+		fmt.Println("Error unmarshalling json")
+		return err
+	}
 
 	r := bufio.NewReader(strings.NewReader(data.Req))
-	var req *http.Request
-	var err error
-	if req, err = http.ReadRequest(r); err != nil { // deserialize request
+	req, err := http.ReadRequest(r) // deserialize request
+	if err != nil { 
 		fmt.Println("Problem reading request: ", err)
 		return err
 	}
@@ -57,8 +59,12 @@ func consumeEvent(event cloudevents.Event) error {
 	client := &http.Client{}
 
 	// build new url - writing the request removes the URL and places in URI.
-	fmt.Println("REQ URI", req.RequestURI)
-	req.URL, _ = url.Parse("http://" + req.Host + req.RequestURI) //TODO: catch this error later
+	req.URL, err = url.Parse("http://" + req.Host + req.RequestURI)
+	if err != nil {
+		fmt.Println("Problem parsing URL: ", req.URL)
+		return err
+	}
+	// RequestURI must be unset for client.Do(req)
 	req.RequestURI = ""
 	req.Header.Del("Prefer") // We do not want to make this request as async
 	resp, err := client.Do(req)
