@@ -29,6 +29,7 @@ type EnvInfo struct {
 	Source           string            `envconfig:"SOURCE"`
 	RedisMaster      string            `envconfig:"REDIS_MASTER_NAME"`
 	Broker           string            `envconfig:"BROKER"`
+	StreamName       string            `envconfig:"REDIS_STREAM_NAME"`
 	Value            string
 }
 
@@ -150,9 +151,9 @@ func writeToRedis(ctx context.Context, s EnvInfo, reqJSON []byte, id string) (er
 	}
 	client := redis.NewUniversalClient(opts)
 	fmt.Println("PUSHING ONTO QUEUE", reqJSON)
-	// TODO: maybe there's a different way to add this to stream?
+	// TODO: maybe there's a different way to format the stream addition?
 	strCMD := client.XAdd(ctx, &redis.XAddArgs{
-		Stream: "mystream",
+		Stream: s.StreamName,
 		Values: map[string]interface{}{
 			"data": reqJSON,
 		},

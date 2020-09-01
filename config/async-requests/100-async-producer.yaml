@@ -45,6 +45,8 @@ spec:
           value: rfs-queue-store:26379
         - name: REDIS_MASTER_NAME
           value: mymaster
+        - name: REDIS_STREAM_NAME
+          value: mystream
         ports:
         - containerPort: 80
 

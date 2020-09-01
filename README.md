@@ -45,31 +45,17 @@ Async component for knative services
 
 ## Install the Redis Source
 
-  1. Follow the `Getting Started` Instructions for the [Redis Source](https://github.com/lionelvillard/eventing-redis)
+  1. Follow the `Getting Started` Instructions for the [Redis Source](https://github.com/lionelvillard/eventing-redis/tree/master/source)
 
-  1. For the `Example` section, do not install the entire `samples` folder, as you don't need the event-display sink. Additionally, edit the `redisstream.yaml` file to point to your consumer as the sink. The change should look something like this:
-      ```
-      apiVersion: sources.knative.dev/v1alpha1
-      kind: RedisStreamSource
-      metadata:
-        name: mystream
-      spec:
-        address: "redis.redis.svc.cluster.local:6379"
-        stream: mystream
-        sink:
-          ref:
-            apiVersion: v1
-            kind: Service
-            name: async-consumer
-      ```
+  1. For the `Example` section, do not install the entire `samples` folder, as you don't need the event-display sink. Only install redis with: `kubectl apply -f samples/redis`.
 
-  1. Apply the changed file to your cluster:
+  2. There is a .yaml file in this project describing the `RedisStreamSource`. It points to the `async-consumer` as the sink. You can apply this file now.
     ```
-    kubectl apply -f samples/redisstream.yaml
+    kubectl apply -f config/async-requests/100-async-redis-source.yaml
     ```
   
 ## Test the Application
-  1. Update your vs.yaml file with the URL to your application under `hosts`. 
+  1. Update your vs.yaml file with the URL to your simple application that you deployed earlier. The update will be under `spec: hosts:`. This vs will route any requests to your application instead to the producer deployment.
 
   1. Curl your application. Try async & non async.
 
