@@ -4,7 +4,7 @@ Async component for knative services
 ![diagram](./README-images/diagram.png)
 
 ## Install Knative Serving & Eventing to your Cluster
-  1. https://knative.dev/docs/install/any-kubernetes-cluster/
+1. https://knative.dev/docs/install/any-kubernetes-cluster/
 
 <!--- 
 ## Follow Instructions for Kafka or Redis
@@ -31,38 +31,48 @@ Async component for knative services
 
 ## Create your Demo Application. 
 
-  1. This can be any simple hello world application that sleeps for some time. There is a sample application that writes to a cloudant DB in the `test/app` folder. To deploy, update the credentials in the `service.yml` and deploy the application with `kubectl deploy -f service.yml`.
+1. This can be any simple hello world application that sleeps for some time. There is a sample application that writes to a cloudant DB in the `test/app` folder. To deploy, update the credentials in the `service.yml` and deploy the application with the `kubectl apply` command.
+    
+    ```
+    kubectl apply -f test/app/service.yml
+    ```
 
-  1. Make note of your application URL.
+1. Make note of your application URL.
 
 ## Install the Consumer and Producer
-  1. Apply the following config files:
+1. Apply the following config files:
 
-      ```
-      ko apply -f config/async-requests/100-async-consumer.yaml
-      ko apply -f config/async-requests/100-async-producer.yaml
-      ```
+    ```
+    ko apply -f config/async-requests/100-async-consumer.yaml
+    ko apply -f config/async-requests/100-async-producer.yaml
+    ```
 
 ## Install the Redis Source
 
-  1. Follow the `Getting Started` Instructions for the [Redis Source](https://github.com/lionelvillard/eventing-redis/tree/master/source)
+1. Follow the `Getting Started` Instructions for the [Redis Source](https://github.com/lionelvillard/eventing-redis/tree/master/source)
 
-  1. For the `Example` section, do not install the entire `samples` folder, as you don't need the event-display sink. Only install redis with: `kubectl apply -f samples/redis`.
+1. For the `Example` section, do not install the entire `samples` folder, as you don't need the event-display sink. Only install redis with: `kubectl apply -f samples/redis`.
 
-  2. There is a .yaml file in this project describing the `RedisStreamSource`. It points to the `async-consumer` as the sink. You can apply this file now.
-    ```
-    kubectl apply -f config/async-requests/100-async-redis-source.yaml
-    ```
+2. There is a .yaml file in this project describing the `RedisStreamSource`. It points to the `async-consumer` as the sink. You can apply this file now.
+  ```
+  kubectl apply -f config/async-requests/100-async-redis-source.yaml
+  ```
   
 ## Test the Application
-  1. Update your vs.yaml file with the URL to your simple application that you deployed earlier. The update will be under `spec: hosts:`. This vs will route any requests to your application instead to the producer deployment.
+1. Update your `config/async-requests/vs.yaml` file with the URL to your simple application that you deployed earlier. The update will be under `spec: hosts:`.
 
-  1. Curl your application. Try async & non async.
+1. Apply the `vs.yaml` file:
+    ```
+    kubectl apply -f config/async-requests/vs.yaml
+    ``` 
+  This virtual service will route any requests to your application instead to the producer deployment. Please note that you may have to delete and redeploy the application so that the virtual service rules take precedence. This is for now.
 
-      ```
-      curl myapp.default.11.112.113.14.xip.io
-      curl myapp.default.11.112.113.14.xip.io -H "Prefer: respond-async" -v
-      ```
+1. Curl your application. Try async & non async.
+
+    ```
+    curl myapp.default.11.112.113.14.xip.io
+    curl myapp.default.11.112.113.14.xip.io -H "Prefer: respond-async" -v
+    ```
 
 
 ## If not using Istio, or vs.yaml doesn't work for you:
