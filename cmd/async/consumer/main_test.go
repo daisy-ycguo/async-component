@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"encoding/base64"
 	"testing"
-
+	"encoding/json"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
 
@@ -42,10 +43,6 @@ func TestConsumeEvent(t *testing.T) {
 		reqString   string
 		expectedErr string
 	}{{
-		name:        "no request data, get request",
-		reqString:   "",
-		expectedErr: "EOF",
-	}, {
 		name:        "proper request data, get request",
 		reqString:   getRequestString(getreq),
 		expectedErr: "",
@@ -57,14 +54,29 @@ func TestConsumeEvent(t *testing.T) {
 		name:        "bad url format",
 		reqString:   getRequestString(badreq),
 		expectedErr: "dial tcp: lookup badurl: no such host",
+	},{
+		name:        "no request data, get request",
+		reqString:   "",
+		expectedErr: "EOF",
 	}}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// create data for Request
-			data.ID = ""
+			// create data for Request. This is how xadd formats data when added to a 
+			// stream: ["data","id: a123, request: a123"] (an array of strings)
+			dataencoded := base64.StdEncoding.EncodeToString([]byte("data"))
+			data.ID = "123"
 			data.Req = test.reqString
 
-			myEvent.SetData(cloudevents.ApplicationJSON, data)
+			// marshal data to json and then translate to string to encode as base64
+			out, err := json.Marshal(data)
+			if err != nil {
+					fmt.Println("error marshalling json for test")
+			}
+			encode := base64.StdEncoding.EncodeToString([]byte(string(out)))
+			testData  := []string {dataencoded,encode}
+
+			// setdata in the event
+			myEvent.SetData(cloudevents.ApplicationJSON, testData)
 
 			theResponse := consumeEvent(myEvent)
 			got := theResponse
@@ -88,6 +100,5 @@ func getRequestString(theReq *http.Request) string {
 		fmt.Println("ERROR WRITING REQUEST")
 		// return err
 	}
-	// translate to string then json with id.
 	return b.String()
 }

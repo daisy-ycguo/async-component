@@ -20,13 +20,12 @@ func TestAsyncRequestHeader(t *testing.T) {
 	}{{
 		name:       "make async request",
 		async:      true,
-		returncode: 200,
+		returncode: 500, //TODO: how can we test 202 return without standing up redis?
 	}, {
 		name:       "non async request",
 		async:      false,
 		returncode: 200,
 	}}
-	// os.Setenv("SOURCE", "redis") //TODO: how to test redis source
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, testserver.URL, nil)
@@ -45,19 +44,4 @@ func TestAsyncRequestHeader(t *testing.T) {
 			}
 		})
 	}
-
-	// t.Run("make async request", func(t *testing.T) {
-	// 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-	// 		request.Header.Set("Prefer", "respond-async")
-	// 		rr := httptest.NewRecorder()
-
-	// 		checkHeaderAndServe(rr, request)
-
-	// 		got := rr.Code
-	// 		want := 200
-
-	// 		if got != want {
-	// 				t.Errorf("got %d, want %d", got, want)
-	// 		}
-	// })
 }

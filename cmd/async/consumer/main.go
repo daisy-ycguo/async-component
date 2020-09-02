@@ -32,12 +32,28 @@ type Request struct {
 	Req string `json:"request"`
 }
 
-func consumeEvent(event cloudevents.Event) error {
+type RequestResult struct {
+  Message  string
+  Req string
+}
 
+func (rr *RequestResult) UnmarshalJSON(inputbytes []byte) error {
+  tmp := []interface{}{&rr.Message, &rr.Req}
+  if err := json.Unmarshal(inputbytes, &tmp); err != nil {
+    return err
+  }
+  return nil
+}
+
+func consumeEvent(event cloudevents.Event) error {
 	data := &Request{}
-	// TODO: how can we get the actual data we need without manually accessing this string?
-	// data is in format "["data":"therequestdata"]", unable to unmarshal top level array
-	reqData := string(event.Data()[13 : len(event.Data())-2])
+	reqResult := &RequestResult{}
+	if err := json.Unmarshal(event.Data(), &reqResult); err != nil {
+    fmt.Println("Error Unmarshaling Event Data", err)
+    log.Fatal(err)
+	}
+	reqData := reqResult.Req
+	// TODO: how can we use event.DataAs() instead of two unmarshal calls?
 	decodedByteArr, decodeErr := base64.StdEncoding.DecodeString(reqData)
 	if decodeErr != nil {
 		log.Fatal("error:", decodeErr)
