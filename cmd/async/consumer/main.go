@@ -16,7 +16,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -47,19 +46,11 @@ func (rr *RequestResult) UnmarshalJSON(inputbytes []byte) error {
 
 func consumeEvent(event cloudevents.Event) error {
 	data := &Request{}
-	reqResult := &RequestResult{}
-	if err := json.Unmarshal(event.Data(), &reqResult); err != nil {
-    fmt.Println("Error Unmarshaling Event Data", err)
-    log.Fatal(err)
-	}
-	reqData := reqResult.Req
-	// TODO: how can we use event.DataAs() instead of two unmarshal calls?
-	decodedByteArr, decodeErr := base64.StdEncoding.DecodeString(reqData)
-	if decodeErr != nil {
-		log.Fatal("error:", decodeErr)
-	}
-	// TODO: check for errors here
-	err := json.Unmarshal(decodedByteArr, data)
+	datastrings := make([]string,0)
+	event.DataAs(&datastrings)
+
+	// unmarshal the string to request
+	err := json.Unmarshal([]byte(datastrings[1]), data)
 	if err != nil {
 		fmt.Println("Error unmarshalling json")
 		return err

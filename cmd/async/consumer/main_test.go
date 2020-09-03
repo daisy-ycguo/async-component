@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"encoding/base64"
 	"testing"
 	"encoding/json"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -63,7 +62,6 @@ func TestConsumeEvent(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// create data for Request. This is how xadd formats data when added to a 
 			// stream: ["data","id: a123, request: a123"] (an array of strings)
-			dataencoded := base64.StdEncoding.EncodeToString([]byte("data"))
 			data.ID = "123"
 			data.Req = test.reqString
 
@@ -72,8 +70,7 @@ func TestConsumeEvent(t *testing.T) {
 			if err != nil {
 					fmt.Println("error marshalling json for test")
 			}
-			encode := base64.StdEncoding.EncodeToString([]byte(string(out)))
-			testData  := []string {dataencoded,encode}
+			testData  := []string {"data",string(out)}
 
 			// setdata in the event
 			myEvent.SetData(cloudevents.ApplicationJSON, testData)
