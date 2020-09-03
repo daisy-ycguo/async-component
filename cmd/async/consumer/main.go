@@ -31,19 +31,6 @@ type Request struct {
 	Req string `json:"request"`
 }
 
-type RequestResult struct {
-  Message  string
-  Req string
-}
-
-func (rr *RequestResult) UnmarshalJSON(inputbytes []byte) error {
-  tmp := []interface{}{&rr.Message, &rr.Req}
-  if err := json.Unmarshal(inputbytes, &tmp); err != nil {
-    return err
-  }
-  return nil
-}
-
 func consumeEvent(event cloudevents.Event) error {
 	data := &Request{}
 	datastrings := make([]string,0)
