@@ -33,7 +33,7 @@ type Request struct {
 
 func consumeEvent(event cloudevents.Event) error {
 	data := &Request{}
-	datastrings := make([]string,0)
+	datastrings := make([]string, 0)
 	event.DataAs(&datastrings)
 
 	// unmarshal the string to request
@@ -45,7 +45,7 @@ func consumeEvent(event cloudevents.Event) error {
 
 	r := bufio.NewReader(strings.NewReader(data.Req))
 	req, err := http.ReadRequest(r) // deserialize request
-	if err != nil { 
+	if err != nil {
 		fmt.Println("Problem reading request: ", err)
 		return err
 	}

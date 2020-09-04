@@ -19,8 +19,8 @@ import (
 )
 
 type EnvInfo struct {
-	StreamName       string            `envconfig:"REDIS_STREAM_NAME"`
-	RedisAddress     string            `envconfig:"REDIS_ADDRESS"`
+	StreamName   string `envconfig:"REDIS_STREAM_NAME"`
+	RedisAddress string `envconfig:"REDIS_ADDRESS"`
 }
 
 type RequestData struct {
@@ -57,7 +57,7 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		proxy.ServeHTTP(w, r)
 	} else {
 		// check for content-length if body exists
-		if (r.Body != nil) {
+		if r.Body != nil {
 			contentLength := r.Header.Get("Content-Length")
 			if contentLength != "" {
 				contentLength, err := strconv.Atoi(contentLength)

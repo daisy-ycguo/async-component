@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestAsyncRequestHeader(t *testing.T) {
@@ -15,40 +15,40 @@ func TestAsyncRequestHeader(t *testing.T) {
 	}))
 
 	tests := []struct {
-		name       string
-		async      bool
-		method     string
-		largeBody  bool
+		name             string
+		async            bool
+		method           string
+		largeBody        bool
 		contentLengthSet bool
-		returncode int
+		returncode       int
 	}{{
-		name:       "async get request",
-		async:      true,
-		method:     "GET",
-		largeBody:  false,
+		name:             "async get request",
+		async:            true,
+		method:           "GET",
+		largeBody:        false,
 		contentLengthSet: false,
-		returncode: 500, //TODO: how can we test 202 return without standing up redis?
+		returncode:       500, //TODO: how can we test 202 return without standing up redis?
 	}, {
-		name:       "non async get request",
-		async:      false,
-		method:     "GET",
-		largeBody:  false,
+		name:             "non async get request",
+		async:            false,
+		method:           "GET",
+		largeBody:        false,
 		contentLengthSet: false,
-		returncode: 200,
+		returncode:       200,
 	}, {
-		name:       "async post request with too large payload",
-		async:      true,
-		method:     "POST",
-		largeBody:  true,
+		name:             "async post request with too large payload",
+		async:            true,
+		method:           "POST",
+		largeBody:        true,
 		contentLengthSet: true,
-		returncode: 500,
+		returncode:       500,
 	}, {
-		name:       "async post request with no content-length set",
-		async:      true,
-		method:     "POST",
-		largeBody:  false,
+		name:             "async post request with no content-length set",
+		async:            true,
+		method:           "POST",
+		largeBody:        false,
 		contentLengthSet: false,
-		returncode: 411,
+		returncode:       411,
 	}}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -56,18 +56,18 @@ func TestAsyncRequestHeader(t *testing.T) {
 			if test.method == "POST" {
 				body := strings.NewReader(`{"body":"this is a body"}`)
 				request, _ = http.NewRequest(http.MethodPost, testserver.URL, body)
-				if (test.contentLengthSet) {
+				if test.contentLengthSet {
 					if test.largeBody {
 						request.Header.Set("Content-Length", "70000000")
 					} else {
 						request.Header.Set("Content-Length", "1000")
 					}
 				}
-			} 
+			}
 			if test.async {
 				request.Header.Set("Prefer", "respond-async")
 			}
-			
+
 			rr := httptest.NewRecorder()
 			checkHeaderAndServe(rr, request)
 
