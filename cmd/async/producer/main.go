@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/bradleypeabody/gouuidv6"
@@ -27,6 +28,10 @@ type RequestData struct {
 	Request string //`json:"request"`
 }
 
+// request size limit in bytes
+const requestSizeLimit = 6000000
+const bitsInMB = 1000000
+
 func main() {
 	// Start an HTTP Server
 	http.HandleFunc("/", checkHeaderAndServe)
@@ -34,15 +39,14 @@ func main() {
 }
 
 func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
-	// check for Prefer: respond-async header
 	var isAsync bool
-
 	target := &url.URL{
 		Scheme:   "http",
 		Host:     r.Host,
 		Path:     r.URL.Path,
 		RawQuery: r.URL.RawQuery,
 	}
+	// check for Prefer: respond-async header
 	asyncHeader := r.Header.Get("Prefer")
 	if asyncHeader == "respond-async" {
 		isAsync = true
@@ -52,6 +56,20 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		r.Host = target.Host
 		proxy.ServeHTTP(w, r)
 	} else {
+		// check for content-length
+		contentLength := r.Header.Get("Content-Length")
+		if contentLength != "" {
+			contentLength, err := strconv.Atoi(contentLength)
+			if err != nil {
+				fmt.Println("error converting contentLength to integer", err)
+				// return err
+			}
+			if contentLength > requestSizeLimit {
+				w.WriteHeader(500)
+				fmt.Fprint(w, "Content-Length exceeds limit of ", float64(requestSizeLimit)/bitsInMB, " MB")
+				return
+			}
+		}
 		// write the request into b
 		var b = &bytes.Buffer{}
 		if err := r.Write(b); err != nil {
