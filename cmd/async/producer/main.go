@@ -56,18 +56,23 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		r.Host = target.Host
 		proxy.ServeHTTP(w, r)
 	} else {
-		// check for content-length
-		contentLength := r.Header.Get("Content-Length")
-		if contentLength != "" {
-			contentLength, err := strconv.Atoi(contentLength)
-			if err != nil {
-				fmt.Println("error converting contentLength to integer", err)
-				// return err
-			}
-			if contentLength > requestSizeLimit {
-				w.WriteHeader(500)
-				fmt.Fprint(w, "Content-Length exceeds limit of ", float64(requestSizeLimit)/bitsInMB, " MB")
-				return
+		// check for content-length if body exists
+		if (r.Body != nil) {
+			contentLength := r.Header.Get("Content-Length")
+			if contentLength != "" {
+				contentLength, err := strconv.Atoi(contentLength)
+				if err != nil {
+					fmt.Println("error converting contentLength to integer", err)
+					// return err
+				}
+				if contentLength > requestSizeLimit {
+					w.WriteHeader(500)
+					fmt.Fprint(w, "Content-Length exceeds limit of ", float64(requestSizeLimit)/bitsInMB, " MB")
+					return
+				}
+			} else { //if content length is empty, but body exists
+				w.WriteHeader(411)
+				fmt.Fprint(w, "Content-Length required with body")
 			}
 		}
 		// write the request into b
