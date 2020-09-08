@@ -4,7 +4,7 @@ metadata:
   name: async-vs
 spec:
   hosts:
-  - "write-to-db.default.50.22.129.219.xip.io"
+  - "write-to-db-default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.sjc03.containers.appdomain.cloud"
   gateways:
   - knative-serving/cluster-local-gateway
   - knative-serving/knative-ingress-gateway
@@ -16,6 +16,6 @@ spec:
       ignoreUriCase: true
     route:
     - destination:
-        host: producer-service.default.svc.cluster.local #producer-service #async-producer.default.52.116.240.92.xip.io # Destination service, must match service name
+        host: producer-service.default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.sjc03.containers.appdomain.cloud #producer-service #async-producer.default.52.116.240.92.xip.io # Destination service, must match service name
         port:
             number: 80 # Post of service, must match service port

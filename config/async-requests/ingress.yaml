@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+ name: test-ingress
+ annotations:
+   kubernetes.io/ingress.class: "public-iks-k8s-nginx"
+spec:
+ rules:
+ - host: "write-to-db-default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.sjc03.containers.appdomain.cloud"
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: producer-service
+         servicePort: 80

@@ -13,10 +13,9 @@ spec:
         - image: docker.io/beemarie/write-to-db:latest
           env:
             - name: APIKEY
-              value: 'YOUR_API_KEY'
+              value: "GXDc4SYa42MD8NZ77ekt8SeQZVFkkkS2VwVKu8h77sB7"
             - name: ACCOUNT
-              value: 'YOUR_ACCT'
-
+              value: "43563060-9359-4f45-968a-4605a0d8090b-bluemix"
           # env:
           #   - name: TARGET
           #     value: "Node.js Sample v1"
