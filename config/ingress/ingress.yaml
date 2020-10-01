@@ -6,7 +6,7 @@ metadata:
    kubernetes.io/ingress.class: "public-iks-k8s-nginx"
 spec:
  rules:
- - host: "write-to-db-default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud"
+ - host: "*.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud"
    http:
      paths:
      - path: /

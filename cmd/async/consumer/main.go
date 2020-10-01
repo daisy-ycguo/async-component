@@ -32,6 +32,7 @@ type Request struct {
 }
 
 func consumeEvent(event cloudevents.Event) error {
+	fmt.Println("INTO CONSUMER...")
 	data := &Request{}
 	datastrings := make([]string, 0)
 	event.DataAs(&datastrings)
@@ -61,6 +62,7 @@ func consumeEvent(event cloudevents.Event) error {
 	// RequestURI must be unset for client.Do(req)
 	req.RequestURI = ""
 	req.Header.Del("Prefer") // We do not want to make this request as async
+	fmt.Println("SENDING TO URL: ", req.URL)
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Problem calling url: ", err)

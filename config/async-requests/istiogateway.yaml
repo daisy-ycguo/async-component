@@ -1,0 +1,11 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  hub: icr.io/ext/istio
+  tag: 1.6.8
+  profile: empty
+  components:
+    ingressGateways:
+      - name: async-gateway
+        namespace: async
+        enabled: true

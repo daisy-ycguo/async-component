@@ -1,0 +1,79 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  annotations:
+    networking.knative.dev/ingress.class: istio.ingress.networking.knative.dev
+    serving.knative.dev/creator: IAM#guoyingc@cn.ibm.com
+    serving.knative.dev/lastModifier: IAM#guoyingc@cn.ibm.com
+  creationTimestamp: "2020-09-30T08:23:28Z"
+  generation: 1
+  labels:
+    networking.internal.knative.dev/ingress: write-to-db
+    serving.knative.dev/route: write-to-db
+    serving.knative.dev/routeNamespace: default
+  name: write-to-db-ingress
+  namespace: default
+  ownerReferences:
+  - apiVersion: networking.internal.knative.dev/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Ingress
+    name: write-to-db
+    uid: 063f6a48-2b58-4f98-a588-4fa18be3e328
+  resourceVersion: "14366450"
+  selfLink: /apis/networking.istio.io/v1beta1/namespaces/default/virtualservices/write-to-db-ingress
+  uid: 2e822e68-4c3e-45b5-92e8-46dc21e298cf
+spec:
+  gateways:
+  - knative-serving/cluster-local-gateway
+  - knative-serving/knative-ingress-gateway
+  hosts:
+  - write-to-db-default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud
+  - write-to-db.default
+  - write-to-db.default.svc
+  - write-to-db.default.svc.cluster.local
+  http:
+  - headers:
+      request:
+        set:
+          K-Network-Hash: f7fa7d7f57ac9499fc9ba4738f3a5be03505107d3b57e9eebb9a24bcc3fa32ab
+    match:
+    - authority:
+        prefix: write-to-db.default
+      gateways:
+      - knative-serving/cluster-local-gateway
+    retries: {}
+    route:
+    - destination:
+        host: write-to-db-v1.default.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            Knative-Serving-Namespace: default
+            Knative-Serving-Revision: write-to-db-v1
+      weight: 100
+    timeout: 172800s
+  - headers:
+      request:
+        set:
+          K-Network-Hash: f7fa7d7f57ac9499fc9ba4738f3a5be03505107d3b57e9eebb9a24bcc3fa32ab
+    match:
+    - authority:
+        prefix: write-to-db-default.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud
+      gateways:
+      - knative-serving/knative-ingress-gateway
+    retries: {}
+    route:
+    - destination:
+        host: write-to-db-v1.default.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            Knative-Serving-Namespace: default
+            Knative-Serving-Revision: write-to-db-v1
+      weight: 100
+    timeout: 172800s

@@ -13,14 +13,10 @@ spec:
   http:
   - name: "route_rule1"
     match:
-      - uri:
-          exact: /async
       - headers:
           Prefer:
             exact: respond-async
         ignoreUriCase: true
-    rewrite:
-      uri: /
     route:
     - destination:
         host: producer-service.default.svc.cluster.local #producer-service #async-producer.default.52.116.240.92.xip.io # Destination service, must match service name

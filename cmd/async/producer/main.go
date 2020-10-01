@@ -47,15 +47,18 @@ func checkHeaderAndServe(w http.ResponseWriter, r *http.Request) {
 		RawQuery: r.URL.RawQuery,
 	}
 	// check for Prefer: respond-async header
+	fmt.Println("INTO PRODUCER...")
 	asyncHeader := r.Header.Get("Prefer")
 	if asyncHeader == "respond-async" {
 		isAsync = true
 	}
 	if !isAsync {
+		fmt.Println("SYNC CALL...")
 		proxy := httputil.NewSingleHostReverseProxy(target)
 		r.Host = target.Host
 		proxy.ServeHTTP(w, r)
 	} else {
+		fmt.Println("ASYNC CALL...")
 		// check for content-length if body exists
 		if r.Body != nil {
 			contentLength := r.Header.Get("Content-Length")
