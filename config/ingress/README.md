@@ -1,16 +1,38 @@
 ## Set up K8s Ingress to manage traffic
 
+![Object model](./ingress.png)
+
 ### Set up Ingress and ALB
+
+Create ingress for `*.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud` by running
+```
+kubectl apply -f config/ingress/ingress.yaml
+```
+
+The ingress looks like:
+```
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+ name: test-ingress
+ annotations:
+   kubernetes.io/ingress.class: "public-iks-k8s-nginx"
+spec:
+ rules:
+ - host: "*.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud"
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: producer-service
+         servicePort: 80
+```
 
 Create an ALB to run Ingress image:
 ```
 ibmcloud ks ingress alb create classic --cluster btmlejad0vtg3abe4ujg --type public --zone dal10 --vlan 2877134 --version 0.34.1_391_iks
 ```
 
-Create ingress for `*.mycluster-guoyc-dff43bc8701fcd5837d6de963718ad39-0000.us-south.containers.appdomain.cloud`
-```
-kubectl apply -f config/ingress/ingress.yaml
-```
 
 ### Test
 
